@@ -54,29 +54,18 @@ def plot_range_doppler_map_with_sampling_freq(range_doppler_map, num_samples, nu
     range_resolution = Fs / (2 * S)
     max_range = range_resolution * (num_samples / 2 )
     range_bins = np.linspace(0, 100, num_samples // 2)
+    range_bins = np.flip(range_bins)
     doppler_resolution = 1 / (num_chirps * T_chirp )
     max_velocity = doppler_resolution * (num_chirps / 2)
     doppler_bins = np.linspace(-max_velocity, max_velocity, num_chirps)
     range_doppler_map[range_doppler_map < -150 ] = 0
-    #print('Len :', range_doppler_map.shape)
     i_max, j_max = range_doppler_map.shape
     for i in range(i_max):
         for j in range(j_max):
             min = range_doppler_map[i][j]
-            '''
-            if window_width != 1:
-                for l in range(window_width - 1) :
-                    if min < range_doppler_map [i][j + l] :
-                        min = range_doppler_map [i][j + l]
-            '''
             if min != 0:
                 total_doppler_array[i][j] = min
 
-    #print("x, y")
-    #np.set_printoptions(threshold=sys.maxsize)
-    #print(range_doppler_map)
-
-    #fig(figsize=(10, 6))
     if frame_iterator == rows - window_width:
         plt.title('Range-Doppler Map ' + str(frame_iterator))
         i_max, j_max = total_doppler_array.shape
@@ -121,13 +110,10 @@ def plot_range_doppler_map_with_sampling_freq(range_doppler_map, num_samples, nu
                             total_doppler_array[i][j] = 50
 
                 if total_doppler_array[i][j] != 0 and abs(total_doppler_array[i][j]) != 50 and total_doppler_array[i][j] != -130:
-                #if total_doppler_array[i][j] != -130 and abs(total_doppler_array[i][j]) != 50:
-                    #speed = (j - (j_max/2))*max_velocity/(j_max)
                     speed = -max_velocity + ((j+1)*2*max_velocity/(j_max))
                     distance = (100*(i+1)/(i_max))
                     if speed != 0 and distance != 0:
                         time = int(abs(speed/distance * 1000))
-                        #print('[ ', int(distance), ' :', int(speed), ' :', int(time), ' ]', end = ' ')
                         if time < 1000 and time_distance[time][0] < 255:
                             #print('[', time, ', ', time_distance[time][0], '] =', speed)
                             time_distance[time][0] = int(time_distance[time][0]) + 1
@@ -139,13 +125,6 @@ def plot_range_doppler_map_with_sampling_freq(range_doppler_map, num_samples, nu
 
         np.set_printoptions(threshold=sys.maxsize)
         print('Time distance array')
-
-        '''
-        for i in range(len(time_distance)):
-            print(time_distance[i][0])
-        #time_distance = np.array(time_distance)
-        '''
-
         x_max, y_max = np.array(time_distance).shape
         print('Shape :::',x_max, '  ', y_max )
         x_axis = []
@@ -169,18 +148,12 @@ def plot_range_doppler_map_with_sampling_freq(range_doppler_map, num_samples, nu
         x_axis = np.array(x_axis)
         y_axis = np.array(y_axis)
 
-
         plt.imshow(total_doppler_array, aspect='auto', extent=[doppler_bins[0], doppler_bins[-1], range_bins[-1], range_bins[0]], cmap='jet')
-        plt.colorbar(label='Amplitude (dB)')
-        plt.xlabel('Velocity (m/s)')
+        plt.colorbar(label='')
+        plt.xlabel('Speed (m/s)')
         plt.ylabel('Range (m)')
-        plt.title('Range-Doppler Map' + str(i))
-        '''
-        #fig, ax = plt.subplots()
-        plt.plot(x_axis, y_axis)
-        '''
+        plt.title('Cumulative Speed-Range Map')
         plt.show()
-
 
 def update_plot(frame) :
     plot_range_doppler_map_with_sampling_freq(np.transpose(range_doppler_array), num_samples, num_chirps, Fs, S,
@@ -218,8 +191,6 @@ zFrames = []
 yFrames = []
 frames_data = []
 range_doppler_map = np.array(range_doppler_map)
-
-#plt.colorbar(label='Amplitude (dB)')
 plt.xlabel('Velocity (m/s)')
 plt.ylabel('Range (m)')
 plt.figure(figsize=(10, 6))
@@ -238,17 +209,4 @@ for i in range(0, rows, window_width):
         yFrames.append(zframes)
     range_doppler_array = np.array(yFrames)
     frame_iterator = i
-    #print('range_doppler_array ', range_doppler_array)
-
-    #ani = FuncAnimation(fig, update_plot, interval=update_interval, blit=False)
-
-    #plot_range_doppler_map(np.transpose(range_doppler_array1), max_range, max_velocity, i)
     plot_range_doppler_map_with_sampling_freq(np.transpose(range_doppler_array), num_samples, num_chirps, Fs, S, T_chirp)
-    #plt.show()
-
-#plt.title('Total map ' + str(frame_iterator))
-#plt.imshow(total_doppler_array, aspect='auto', extent=[doppler_bins[0], doppler_bins[-1], range_bins[-1], range_bins[0]], cmap='jet')
-#plt.show()
-
-
-#ani = FuncAnimation(fig, update_plot, interval=update_interval, blit=True)
